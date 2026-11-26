@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#21163f">
+<meta name="description" content="FiguraSom: crie figurinhas personalizadas e combine com sua voz.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<title>FiguraSom — seu estúdio criativo</title>
+<style>
+:root{color-scheme:dark;--bg:#100d1d;--panel:#1c1730;--line:#352b50;--text:#f8f5ff;--muted:#b9b0ce;--purple:#8b69f5;--pink:#e77ac8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#29204a 0,#100d1d 55%);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer} .wrap{max-width:980px;margin:auto;padding:18px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 22px}
+.logo{font-size:27px;font-weight:900;letter-spacing:-1.2px}.logo span{color:#b9a6ff}.tag{font-size:11px;letter-spacing:.12em;color:#d9ceff;border:1px solid #594b83;border-radius:99px;padding:7px 10px}
+.hero{padding:24px;border:1px solid #443664;border-radius:24px;background:linear-gradient(125deg,#32245c,#21183b 65%,#39234f);margin-bottom:18px}
+.hero h1{font-size:clamp(26px,5vw,42px);line-height:1.05;margin:8px 0}.hero p{color:#d6cdec;max-width:580px;margin:10px 0 0}.eyebrow{font-size:12px;color:#c8b9ff;font-weight:800;letter-spacing:.14em}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:rgba(28,23,48,.94);border:1px solid var(--line);border-radius:20px;padding:18px;min-width:0}.panel h2{font-size:18px;margin:0 0 14px}.preview{display:flex;flex-direction:column;align-items:center;gap:12px}
+canvas{width:min(100%,360px);height:auto;aspect-ratio:1;border-radius:18px;background:#251d40;box-shadow:0 12px 35px #0005}
+.field{display:block;width:100%;margin:7px 0 14px;padding:12px;border:1px solid #493d65;border-radius:12px;background:#120f20;color:var(--text);outline:none}
+.field:focus{border-color:var(--purple)}label{display:block;font-size:13px;font-weight:700;color:#e7e0f5;margin-top:9px}
+.btn{border:0;border-radius:12px;padding:12px 15px;background:linear-gradient(120deg,#8866f1,#ad62cf);color:white;font-weight:800}
+.btn.secondary{background:#2a2340;border:1px solid #51436e}.btn:disabled{opacity:.4;cursor:not-allowed}.actions{display:flex;flex-wrap:wrap;gap:9px}.actions .btn{flex:1}
+.hint,.status{font-size:12px;color:var(--muted);line-height:1.5}.status{min-height:20px;margin-top:10px}
+.audio-box{border:1px dashed #594a79;border-radius:14px;padding:14px;margin-top:8px}
+audio{width:100%;margin-top:10px}.recording{color:#ff9dba;font-weight:700}
+footer{text-align:center;color:#958ba9;font-size:12px;padding:24px 0}
+.install{display:none}.install.show{display:inline-flex}
+@media(max-width:720px){.layout{grid-template-columns:1fr}.wrap{padding:12px}.hero{padding:20px}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="logo">Figura<span>Som.</span></div><div class="tag">ESTÚDIO CRIATIVO</div></header>
+<section class="hero"><div class="eyebrow">SUA CRIATIVIDADE GANHA VOZ</div><h1>Crie. Personalize.<br>Compartilhe.</h1><p>Transforme fotos em figurinhas e junte uma mensagem de voz ou áudio. Tudo direto no seu celular.</p></section>
+<div class="layout">
+<section class="panel">
+<h2>✨ Sua figurinha</h2>
+<div class="preview"><canvas id="canvas" width="600" height="600" aria-label="Prévia da figurinha"></canvas><div class="actions" style="width:100%"><button class="btn" id="downloadPng">Baixar figurinha PNG</button><button class="btn secondary" id="shareFiles">Compartilhar</button></div></div>
+<p class="hint">Dica: use uma foto sua ou uma imagem que você tenha autorização para usar. A imagem é processada no próprio aparelho.</p>
+</section>
+<section class="panel">
+<h2>🖼️ Personalize</h2>
+<label for="photo">Escolha uma foto</label><input class="field" id="photo" type="file" accept="image/*">
+<label for="phrase">Frase da figurinha</label><input class="field" id="phrase" maxlength="48" value="Essa é pra você ❤️" placeholder="Digite sua frase">
+<label for="bg">Cor de fundo</label><select class="field" id="bg"><option value="#281d53">Roxo</option><option value="#142c50">Azul</option><option value="#5a2947">Rosa</option><option value="#193c34">Verde</option><option value="#171717">Preto</option><option value="#f3c969">Dourado</option></select>
+<label for="fontColor">Cor do texto</label><select class="field" id="fontColor"><option value="#ffffff">Branco</option><option value="#17121f">Preto</option><option value="#ffe28a">Dourado</option></select>
+<div class="actions"><button class="btn secondary" id="reset">Limpar criação</button></div>
+</section>
+<section class="panel">
+<h2>🎙️ Grave sua voz</h2>
+<p class="hint">Toque em gravar, permita o microfone e diga sua mensagem. Limite: 2 minutos.</p>
+<div class="audio-box">
+<div id="recordState">Pronto para gravar</div><div class="actions" style="margin-top:12px"><button class="btn" id="startRec">● Gravar</button><button class="btn secondary" id="stopRec" disabled>■ Parar</button></div>
+<div class="hint" id="timer">00:00</div>
+</div>
+<label for="audioFile">Ou escolha um áudio do aparelho</label><input class="field" id="audioFile" type="file" accept="audio/*">
+<audio id="player" controls hidden></audio>
+<div class="actions"><button class="btn secondary" id="downloadAudio" disabled>Baixar áudio</button><button class="btn secondary" id="clearAudio" disabled>Remover áudio</button></div>
+<div class="status" id="audioStatus" role="status">Nenhum áudio selecionado.</div>
+</section>
+<section class="panel">
+<h2>📲 Compartilhe sua criação</h2>
+<p class="hint">O WhatsApp não transforma áudio em figurinha estática. O FiguraSom cria dois arquivos: a imagem PNG e o áudio, que podem ser compartilhados juntos quando o aparelho oferece suporte.</p>
+<div class="actions"><button class="btn" id="shareAudio" disabled>Compartilhar áudio</button><button class="btn secondary" id="shareImage">Compartilhar imagem</button></div>
+<div class="status" id="mainStatus" role="status">Tudo pronto para criar. 💜</div>
+<button class="btn secondary install" id="installBtn" style="width:100%;margin-top:12px">Instalar FiguraSom</button>
+</section>
+</div>
+<footer>FiguraSom · Feito para criar e compartilhar · Seus arquivos ficam no seu aparelho.</footer>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d');
+let image=null,audioBlob=null,audioUrl=null,recorder=null,stream=null,parts=[],timerId=null,elapsed=0,deferredInstall=null;
+function say(t){$('mainStatus').textContent=t}
+function draw(){
+ ctx.fillStyle=$('bg').value;ctx.fillRect(0,0,600,600);
+ if(image){const s=Math.max(600/image.width,600/image.height),w=image.width*s,h=image.height*s;ctx.save();ctx.beginPath();ctx.rect(0,0,600,600);ctx.clip();ctx.drawImage(image,(600-w)/2,(600-h)/2,w,h);ctx.restore();ctx.fillStyle='rgba(0,0,0,.38)';ctx.fillRect(0,0,600,600)}
+ else{ctx.fillStyle='rgba(255,255,255,.12)';ctx.beginPath();ctx.arc(300,250,125,0,Math.PI*2);ctx.fill();ctx.font='110px sans-serif';ctx.textAlign='center';ctx.fillText('🎧',300,290);ctx.fillStyle='#fff';ctx.font='bold 26px sans-serif';ctx.fillText('SUA FOTO AQUI',300,430)}
+ const phrase=$('phrase').value.trim()||'Minha figurinha ❤️';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 43px system-ui,sans-serif';if(ctx.measureText(phrase).width>540)ctx.font='bold 32px system-ui,sans-serif';
+ ctx.lineWidth=9;ctx.strokeStyle='rgba(20,12,30,.95)';ctx.strokeText(phrase,300,535,550);ctx.fillStyle=$('fontColor').value;ctx.fillText(phrase,300,535,550);
+}
+function download(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),2500)}
+function setAudio(blob,name){
+ if(audioUrl)URL.revokeObjectURL(audioUrl);audioBlob=blob;audioUrl=URL.createObjectURL(blob);
+ $('player').src=audioUrl;$('player').hidden=false;$('downloadAudio').disabled=false;$('clearAudio').disabled=false;$('shareAudio').disabled=false;$('audioStatus').textContent='Áudio pronto: '+name;
+}
+$('photo').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;if(!f.type.startsWith('image/'))return;const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{image=im;draw();URL.revokeObjectURL(u);say('Foto adicionada!')};im.onerror=()=>say('Não foi possível abrir essa imagem.');im.src=u});
+['phrase','bg','fontColor'].forEach(id=>$(id).addEventListener(id==='phrase'?'input':'change',draw));
+$('downloadPng').onclick=()=>canvas.toBlob(b=>{if(b){download(b,'figurasom-figurinha.png');say('Figurinha baixada!')}},'image/png');
+$('reset').onclick=()=>{image=null;$('photo').value='';$('phrase').value='Essa é pra você ❤️';$('bg').value='#281d53';$('fontColor').value='#ffffff';draw();say('Criação limpa.')};
+$('startRec').onclick=async()=>{
+ try{
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){$('audioStatus').textContent='Gravação não suportada neste navegador. Escolha um áudio do aparelho.';return}
+  stream=await navigator.mediaDevices.getUserMedia({audio:true});parts=[];
+  const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t));
+  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};
+  recorder.onstop=()=>{const blob=new Blob(parts,{type:recorder.mimeType||'audio/webm'});setAudio(blob,'gravação de voz');stream?.getTracks().forEach(t=>t.stop());stream=null;$('recordState').textContent='Gravação finalizada';$('startRec').disabled=false;$('stopRec').disabled=true};
+  recorder.start();elapsed=0;updateTimer();timerId=setInterval(()=>{elapsed++;updateTimer();if(elapsed>=120)$('stopRec').click()},1000);$('recordState').textContent='🔴 Gravando...';$('startRec').disabled=true;$('stopRec').disabled=false;
+ }catch(err){$('audioStatus').textContent='Microfone indisponível. Verifique a permissão do navegador.'}
+};
+function updateTimer(){$('timer').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0')}
+$('stopRec').onclick=()=>{if(recorder?.state==='recording'){recorder.stop();clearInterval(timerId)}};
+$('audioFile').onchange=e=>{const f=e.target.files[0];if(f?.type.startsWith('audio/'))setAudio(f,f.name)};
+$('downloadAudio').onclick=()=>{if(audioBlob)download(audioBlob,'figurasom-audio.'+(audioBlob.type.includes('mp4')?'m4a':'webm'))};
+$('clearAudio').onclick=()=>{if(audioUrl)URL.revokeObjectURL(audioUrl);audioUrl=null;audioBlob=null;$('player').pause();$('player').removeAttribute('src');$('player').hidden=true;$('downloadAudio').disabled=true;$('clearAudio').disabled=true;$('shareAudio').disabled=true;$('audioFile').value='';$('audioStatus').textContent='Áudio removido.'};
+$('shareImage').onclick=async()=>{canvas.toBlob(async blob=>{const f=new File([blob],'figurasom.png',{type:'image/png'});try{if(navigator.canShare?.({files:[f]}))await navigator.share({files:[f],title:'Minha figurinha FiguraSom'});else download(blob,'figurasom.png')}catch(e){if(e.name!=='AbortError')say('Não foi possível compartilhar a imagem.')}},'image/png')};
+$('shareAudio').onclick=async()=>{if(!audioBlob)return;const f=new File([audioBlob],'figurasom-audio.'+(audioBlob.type.includes('mp4')?'m4a':'webm'),{type:audioBlob.type||'audio/webm'});try{if(navigator.canShare?.({files:[f]}))await navigator.share({files:[f],title:'Meu áudio FiguraSom'});else download(audioBlob,f.name)}catch(e){if(e.name!=='AbortError')say('Não foi possível compartilhar o áudio.')}};
+$('shareFiles').onclick=async()=>{const png=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));const files=[new File([png],'figurasom.png',{type:'image/png'})];if(audioBlob)files.push(new File([audioBlob],'figurasom-audio.'+(audioBlob.type.includes('mp4')?'m4a':'webm'),{type:audioBlob.type||'audio/webm'}));try{if(navigator.canShare?.({files}))await navigator.share({files,title:'Minha criação FiguraSom',text:'Olha minha criação! 💜'});else{download(png,'figurasom.png');if(audioBlob)download(audioBlob,'figurasom-audio.webm');say('Arquivos baixados separadamente.')}}catch(e){if(e.name!=='AbortError')say('Compartilhamento não disponível. Baixe os arquivos separadamente.')}};
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('installBtn').classList.add('show')});
+$('installBtn').onclick=async()=>{if(!deferredInstall)return;deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('installBtn').classList.remove('show')};
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+draw();
+})();
+</script>
+</body></html>
